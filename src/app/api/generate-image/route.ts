@@ -14,8 +14,10 @@ export async function POST(req: Request) {
         }
 
         // The exact config parameters for aspect ratio/resolution in generateContent 
-        // with the new 3.1 models are typically passed inside generationConfig or specialized options.
-        // We'll pass them in as standard properties; the REST API usually accepts them.
+        // Example valid aspects in API: '1:1', '3:4', '4:3', '9:16', '16:9'
+        // ultra-tall/wide ratios like 1:4, 1:8, 4:1, 8:1
+        const validAspectRatio = aspectRatio || '1:1';
+
         const response = await ai.models.generateContent({
             model: 'gemini-3.1-flash-image-preview',
             contents: [
@@ -26,7 +28,10 @@ export async function POST(req: Request) {
             ],
             config: {
                 responseModalities: ["IMAGE"],
-            }
+                // Pass aspectRatio here for generateContent in Gemini 3.1
+                aspectRatio: validAspectRatio,
+                // outputMimeType: 'image/jpeg', // Not typically needed for standard generateContent unless explicitly setting structured text output, but keeping it commented out if needed.
+            } as any
         });
 
         const part = response.candidates?.[0]?.content?.parts?.[0];
