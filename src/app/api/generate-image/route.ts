@@ -29,7 +29,16 @@ export async function POST(req: Request) {
             config: {
                 responseModalities: ["IMAGE"],
                 // Pass aspectRatio here for generateContent in Gemini 3.1
+                // The v1alpha types expect "aspectRatio", but some preview APIs need "aspect_ratio" or nested configs.
+                // We provide variations to ensure it gets picked up.
                 aspectRatio: validAspectRatio,
+                aspect_ratio: validAspectRatio,
+                imageConfig: {
+                    aspectRatio: validAspectRatio,
+                },
+                imageGenerationConfig: {
+                    aspectRatio: validAspectRatio,
+                }
                 // outputMimeType: 'image/jpeg', // Not typically needed for standard generateContent unless explicitly setting structured text output, but keeping it commented out if needed.
             } as any
         });
