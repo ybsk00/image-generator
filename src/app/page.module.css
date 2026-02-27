@@ -299,12 +299,47 @@
   line-height: 1.5;
 }
 
+.imageResultWrapper {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .imageResult {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-sm);
+}
+
+.downloadBtn {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: var(--surface);
+  color: #fff;
+  border: 1px solid var(--border);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.8;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
+}
+
+.downloadBtn:hover {
+  opacity: 1;
+  background: var(--surface-hover);
+  transform: translateY(-2px);
 }
 
 /* Prompt Generator Section inside Sidebar */

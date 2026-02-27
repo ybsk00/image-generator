@@ -7,7 +7,8 @@ import {
   Layers,
   Sparkles,
   Wand2,
-  Zap
+  Zap,
+  Download
 } from 'lucide-react';
 
 const ASPECT_RATIOS = ['1:1', '3:4', '4:3', '9:16', '16:9', '1:4', '1:8', '4:1', '8:1'];
@@ -62,6 +63,16 @@ export default function Home() {
     } finally {
       setIsGeneratingImage(false);
     }
+  };
+
+  const handleDownload = () => {
+    if (!generatedImage) return;
+    const a = document.createElement('a');
+    a.href = generatedImage;
+    a.download = `NanoBanana2_${Date.now()}.jpg`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   return (
@@ -204,7 +215,13 @@ export default function Home() {
                 <div className={styles.placeholderDesc}>Hang tight! Nano Banana 2 is generating your high-fidelity image using gemini-3.1-flash-image-preview.</div>
               </>
             ) : generatedImage ? (
-              <img src={generatedImage} alt="Generated result" className={styles.imageResult} />
+              <div className={styles.imageResultWrapper}>
+                <img src={generatedImage} alt="Generated result" className={styles.imageResult} />
+                <button className={styles.downloadBtn} onClick={handleDownload} title="Download Image">
+                  <Download size={20} />
+                  Download
+                </button>
+              </div>
             ) : (
               <>
                 <div className={styles.placeholderIcon}>
