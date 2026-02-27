@@ -13,27 +13,33 @@ export async function POST(req: Request) {
             return new Response(JSON.stringify({ error: 'Prompt is required' }), { status: 400 });
         }
 
-        // Example valid aspects in API: '1:1', '3:4', '4:3', '9:16', '16:9'
-        // The user requested ultra-tall/wide ratios like 1:4, 1:8, 4:1, 8:1
-        // We pass what they select. If the model throws an error for unsupported ratios, it will be caught.
-        const validAspectRatio = aspectRatio || '1:1';
-
-        const response = await ai.models.generateImages({
+        // The exact config parameters for aspect ratio/resolution in generateContent 
+        // with the new 3.1 models are typically passed inside generationConfig or specialized options.
+        // We'll pass them in as standard properties; the REST API usually accepts them.
+        const response = await ai.models.generateContent({
             model: 'gemini-3.1-flash-image-preview',
-            prompt: prompt,
+            contents: [
+                {
+                    role: 'user',
+                    parts: [{ text: prompt }]
+                }
+            ],
             config: {
-                numberOfImages: 1,
-                aspectRatio: validAspectRatio,
-                outputMimeType: 'image/jpeg',
+                responseModalities: ["IMAGE"],
             }
         });
 
-        const base64Image = response.generatedImages?.[0]?.image?.imageBytes;
+        const part = response.candidates?.[0]?.content?.parts?.[0];
+        const inlineData = part?.inlineData;
+        const base64Image = inlineData?.data;
+        const mimeType = inlineData?.mimeType || 'image/jpeg';
+
         if (!base64Image) {
-            throw new Error('No image was returned from the model');
+            console.error('Full response:', JSON.stringify(response, null, 2));
+            throw new Error('No image was returned from the model. See server logs for full response.');
         }
 
-        return new Response(JSON.stringify({ image: `data:image/jpeg;base64,${base64Image}` }), {
+        return new Response(JSON.stringify({ image: `data:${mimeType};base64,${base64Image}` }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
         });
