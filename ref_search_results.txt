@@ -1,0 +1,56 @@
+--- MATCH at line 2990 ---
+2988:     prompt: string;
+2989:     /** The reference images for Imagen 3 editing. */
+2990:     referenceImages: ReferenceImage[];
+2991:     /** Configuration for editing. */
+2992:     config?: EditImageConfig;
+2993: }
+--- MATCH at line 4542 ---
+4540:      be associated with a type. Veo 2 supports up to 3 asset images *or* 1
+4541:      style image. */
+4542:     referenceImages?: VideoGenerationReferenceImage[];
+4543:     /** The mask to use for generating videos. */
+4544:     mask?: VideoGenerationMask;
+4545:     /** Compression quality of the generated videos. */
+--- MATCH at line 7560 ---
+7558:      *  model: 'imagen-3.0-capability-001',
+7559:      *  prompt: 'Generate an image containing a mug with the product logo [1] visible on the side of the mug.',
+7560:      *  referenceImages: [subjectReferenceImage]
+7561:      *  config: {
+7562:      *    numberOfImages: 1,
+7563:      *    includeRaiReason: true,
+--- MATCH at line 8504 ---
+8502: }
+8503: 
+8504: export declare type ReferenceImage = RawReferenceImage | MaskReferenceImage | ControlReferenceImage | StyleReferenceImage | SubjectReferenceImage | ContentReferenceImage;
+8505: 
+8506: /** Private class that represents a Reference image that is sent to API. */
+8507: declare interface ReferenceImageAPIInternal {
+--- MATCH at line 9288 ---
+9286:  A raw reference image can also be provided as a destination for the style to
+9287:  be applied to. */
+9288: export declare class StyleReferenceImage {
+9289:     /** The reference image for the editing operation. */
+9290:     referenceImage?: Image_2;
+9291:     /** The id of the reference image. */
+--- MATCH at line 9316 ---
+9314:  A raw reference image can also be provided as a destination for the subject to
+9315:  be applied to. */
+9316: export declare class SubjectReferenceImage {
+9317:     /** The reference image for the editing operation. */
+9318:     referenceImage?: Image_2;
+9319:     /** The id of the reference image. */
+--- MATCH at line 10520 ---
+10518:         MaskReferenceImage,
+10519:         ControlReferenceImage,
+10520:         StyleReferenceImage,
+10521:         SubjectReferenceImage,
+10522:         ContentReferenceImage,
+10523:         LiveServerSetupComplete,
+--- MATCH at line 10521 ---
+10519:         ControlReferenceImage,
+10520:         StyleReferenceImage,
+10521:         SubjectReferenceImage,
+10522:         ContentReferenceImage,
+10523:         LiveServerSetupComplete,
+10524:         Transcription,

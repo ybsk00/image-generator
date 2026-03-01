@@ -10,7 +10,8 @@ import {
   Zap,
   Download,
   MessageSquarePlus,
-  X
+  X,
+  Upload
 } from 'lucide-react';
 
 const ASPECT_RATIOS = ['1:1', '3:4', '4:3', '9:16', '16:9', '1:4', '1:8', '4:1', '8:1'];
@@ -29,7 +30,23 @@ export default function Home() {
   const [ideaDescription, setIdeaDescription] = useState('');
   const [isGeneratingFromIdea, setIsGeneratingFromIdea] = useState(false);
 
+  const [referenceImage, setReferenceImage] = useState<string | null>(null);
+  const [referenceType, setReferenceType] = useState<'subject' | 'style' | 'none'>('none');
+
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setReferenceImage(reader.result as string);
+      if (referenceType === 'none') {
+        setReferenceType('subject');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleGeneratePrompt = async () => {
     if (!prompt.trim()) return;
@@ -80,7 +97,7 @@ export default function Home() {
       const res = await fetch('/api/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, aspectRatio, resolution })
+        body: JSON.stringify({ prompt, aspectRatio, resolution, referenceImage, referenceType })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -152,36 +169,80 @@ export default function Home() {
 
           {/* Reference Images */}
           <div className={styles.pannel}>
-            <h2 className={styles.pannelTitle}>Reference Images (Optional)</h2>
-            <div className={styles.uploaderGrid}>
-              <div className={styles.uploadBox}>
-                <div className={styles.uploadIconWrap}>
-                  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='3' y1='9' x2='21' y2='9'%3E%3C/line%3E%3Cline x1='9' y1='21' x2='9' y2='9'%3E%3C/line%3E%3C/svg%3E" alt="Structure" width="24" />
-                </div>
-                <div>
-                  <div className={styles.uploadTitle}>Structure</div>
-                  <div className={styles.uploadDesc}>Composition source</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 className={styles.pannelTitle}>Reference Images (Optional)</h2>
+              <label className={styles.pannelHelpText} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', backgroundColor: 'var(--bg-secondary)', padding: '6px 12px', borderRadius: '16px', border: '1px solid var(--border-light)', color: 'white' }}>
+                <Upload size={14} />
+                <span>Upload Image</span>
+                <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: 'none' }} />
+              </label>
+            </div>
+            {referenceImage ? (
+              <div style={{ marginTop: '12px', padding: '12px', border: '1px solid var(--border-light)', borderRadius: '12px', position: 'relative', backgroundColor: 'var(--bg-secondary)' }}>
+                <button
+                  onClick={() => { setReferenceImage(null); setReferenceType('none'); }}
+                  style={{ position: 'absolute', top: '8px', right: '8px', background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', padding: '4px', cursor: 'pointer', color: 'white' }}
+                  title="Remove image"
+                >
+                  <X size={16} />
+                </button>
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                  <img src={referenceImage} alt="Reference" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border-light)' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
+                    <div className={styles.uploadTitle}>Reference Type</div>
+                    <div className={styles.grid2}>
+                      <button
+                        className={`${styles.optionBtn} ${referenceType === 'subject' ? styles.optionBtnActive : ''}`}
+                        onClick={() => setReferenceType('subject')}
+                      >
+                        인물/상품 유지 (Subject)
+                      </button>
+                      <button
+                        className={`${styles.optionBtn} ${referenceType === 'style' ? styles.optionBtnActive : ''}`}
+                        onClick={() => setReferenceType('style')}
+                      >
+                        스타일 유지 (Style)
+                      </button>
+                    </div>
+                    <div className={styles.pannelHelpText} style={{ marginTop: '4px' }}>
+                      {referenceType === 'subject' ? 'The generated image will feature the exact person/product from the uploaded image.' : 'The generated image will follow the colors and artistic style of the uploaded image.'}
+                    </div>
+                  </div>
                 </div>
               </div>
+            ) : (
+              <>
+                <div className={styles.uploaderGrid} style={{ marginTop: '12px' }}>
+                  <div className={styles.uploadBox}>
+                    <div className={styles.uploadIconWrap}>
+                      <ImageIcon size={24} color="var(--text-secondary)" />
+                    </div>
+                    <div>
+                      <div className={styles.uploadTitle}>Subject</div>
+                      <div className={styles.uploadDesc}>Keep character/product</div>
+                    </div>
+                  </div>
 
-              <div className={styles.uploadBox}>
-                <div className={styles.uploadIconWrap}>
-                  <Layers size={24} color="var(--text-secondary)" />
+                  <div className={styles.uploadBox}>
+                    <div className={styles.uploadIconWrap}>
+                      <Layers size={24} color="var(--text-secondary)" />
+                    </div>
+                    <div>
+                      <div className={styles.uploadTitle}>Style</div>
+                      <div className={styles.uploadDesc}>Vibe/Concept source</div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className={styles.uploadTitle}>Style</div>
-                  <div className={styles.uploadDesc}>Vibe/Concept source</div>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                  <div className={styles.pannelHelpText} style={{ flex: 1 }}>
+                    Use an image to strictly maintain the identity of a subject.
+                  </div>
+                  <div className={styles.pannelHelpText} style={{ flex: 1 }}>
+                    Use an image to copy the art style, color, or cinematic feel.
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <div className={styles.pannelHelpText} style={{ flex: 1 }}>
-                Use this to edit an image or keep the composition/pose.
-              </div>
-              <div className={styles.pannelHelpText} style={{ flex: 1 }}>
-                Use this to copy the art style, color, or cinematic feel.
-              </div>
-            </div>
+              </>
+            )}
           </div>
 
           {/* Aspect Ratio & Resolution */}

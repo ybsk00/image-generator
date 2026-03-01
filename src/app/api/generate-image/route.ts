@@ -4,15 +4,12 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
     try {
-        const { prompt, aspectRatio, resolution } = await req.json();
+        const { prompt, aspectRatio, resolution, referenceImage, referenceType } = await req.json();
 
         if (!prompt) {
             return new Response(JSON.stringify({ error: 'Prompt is required' }), { status: 400 });
         }
 
-        // The exact config parameters for aspect ratio/resolution in generateContent 
-        // Example valid aspects in API: '1:1', '3:4', '4:3', '9:16', '16:9'
-        // ultra-tall/wide ratios like 1:4, 1:8, 4:1, 8:1
         const validAspectRatio = aspectRatio || '1:1';
 
         const ai = new GoogleGenAI({
@@ -20,12 +17,42 @@ export async function POST(req: Request) {
             httpOptions: { apiVersion: 'v1alpha' }
         });
 
+        const parts: any[] = [];
+
+        if (referenceImage && referenceType && referenceType !== 'none') {
+            const matches = referenceImage.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+                const mimeType = matches[1];
+                const data = matches[2];
+                // 1. Add the reference image
+                parts.push({
+                    inlineData: {
+                        mimeType: mimeType,
+                        data: data
+                    }
+                });
+
+                // 2. Add the text prompt with special instructions based on the Reference Type
+                let enhancedPrompt = prompt;
+                if (referenceType === 'subject') {
+                    enhancedPrompt += "\n\nCRITICAL INSTRUCTION: Use the provided image as a STRICT SUBJECT REFERENCE. The generated image MUST feature the exact same person, character, or product shown in the uploaded image. Maintain their identity, facial features, and core design perfectly.";
+                } else if (referenceType === 'style') {
+                    enhancedPrompt += "\n\nCRITICAL INSTRUCTION: Use the provided image as a STRICT STYLE REFERENCE. The generated image MUST perfectly match the artistic style, color palette, lighting, vibe, and aesthetic of the uploaded image. Do not copy the subject, only the style.";
+                }
+                parts.push({ text: enhancedPrompt });
+            } else {
+                parts.push({ text: prompt });
+            }
+        } else {
+            parts.push({ text: prompt });
+        }
+
         const response = await ai.models.generateContent({
             model: 'gemini-3.1-flash-image-preview',
             contents: [
                 {
                     role: 'user',
-                    parts: [{ text: prompt }]
+                    parts: parts
                 }
             ],
             config: {

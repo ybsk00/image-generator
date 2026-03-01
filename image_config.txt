@@ -1,0 +1,24 @@
+interface ImageConfig {
+    /** Aspect ratio of the generated images. Supported values are
+     "1:1", "2:3", "3:2", "3:4", "4:3", "9:16", "16:9", and "21:9". */
+    aspectRatio?: string;
+    /** Optional. Specifies the size of generated images. Supported
+     values are `1K`, `2K`, `4K`. If not specified, the model will use default
+     value `1K`. */
+    imageSize?: string;
+    /** Controls the generation of people. Supported values are:
+     ALLOW_ALL, ALLOW_ADULT, ALLOW_NONE. */
+    personGeneration?: string;
+    /** Controls whether prominent people (celebrities)
+     generation is allowed. If used with personGeneration, personGeneration
+     enum would take precedence. For instance, if ALLOW_NONE is set, all person
+     generation would be blocked. If this field is unspecified, the default
+     behavior is to allow prominent people. */
+    prominentPeople?: ProminentPeople;
+    /** MIME type of the generated image. This field is not
+     supported in Gemini API. */
+    outputMimeType?: string;
+    /** Compression quality of the generated image (for
+     ``image/jpeg`` only). This field is not supported in Gemini API. */
+    outputCompressionQuality?: number;
+}
