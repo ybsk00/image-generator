@@ -8,7 +8,9 @@ import {
   Sparkles,
   Wand2,
   Zap,
-  Download
+  Download,
+  MessageSquarePlus,
+  X
 } from 'lucide-react';
 
 const ASPECT_RATIOS = ['1:1', '3:4', '4:3', '9:16', '16:9', '1:4', '1:8', '4:1', '8:1'];
@@ -22,6 +24,10 @@ export default function Home() {
   const [prompt, setPrompt] = useState('');
   const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+  const [ideaDescription, setIdeaDescription] = useState('');
+  const [isGeneratingFromIdea, setIsGeneratingFromIdea] = useState(false);
 
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
 
@@ -42,6 +48,28 @@ export default function Home() {
       alert('Failed to enhance prompt: ' + String(error));
     } finally {
       setIsGeneratingPrompt(false);
+    }
+  };
+
+  const handleGenerateFromIdea = async () => {
+    if (!ideaDescription.trim()) return;
+    setIsGeneratingFromIdea(true);
+    try {
+      const res = await fetch('/api/generate-prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: ideaDescription })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setPrompt(data.prompt);
+      setIsPromptModalOpen(false);
+      setIdeaDescription('');
+    } catch (error) {
+      console.error(error);
+      alert('Failed to generate prompt: ' + String(error));
+    } finally {
+      setIsGeneratingFromIdea(false);
     }
   };
 
@@ -102,14 +130,23 @@ export default function Home() {
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
               />
-              <button
-                className={styles.enhanceBtn}
-                onClick={handleGeneratePrompt}
-                disabled={isGeneratingPrompt || !prompt.trim()}
-              >
-                {isGeneratingPrompt ? <Sparkles className={`${styles.spinner}`} size={16} /> : <Wand2 size={16} />}
-                {isGeneratingPrompt ? 'Enhancing...' : 'Auto Enhance Prompt'}
-              </button>
+              <div className={styles.actionRow}>
+                <button
+                  className={`${styles.enhanceBtn} ${styles.outlineBtn}`}
+                  onClick={() => setIsPromptModalOpen(true)}
+                >
+                  <MessageSquarePlus size={16} />
+                  프롬프트 생성
+                </button>
+                <button
+                  className={styles.enhanceBtn}
+                  onClick={handleGeneratePrompt}
+                  disabled={isGeneratingPrompt || !prompt.trim()}
+                >
+                  {isGeneratingPrompt ? <Sparkles className={`${styles.spinner}`} size={16} /> : <Wand2 size={16} />}
+                  {isGeneratingPrompt ? 'Enhancing...' : 'Auto Enhance'}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -238,6 +275,51 @@ export default function Home() {
           </div>
         </section>
       </main>
+      {/* Prompt Generation Modal */}
+      {isPromptModalOpen && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>프롬프트 생성</h2>
+              <button
+                className={styles.closeBtn}
+                onClick={() => setIsPromptModalOpen(false)}
+                disabled={isGeneratingFromIdea}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              <p className={styles.modalDesc}>
+                생성하고 싶은 이미지를 자유롭게 적어주세요. (예: 피부과에 들어갈 히어로섹션 이미지, 고급스러운 분위기, 여자 모델)
+              </p>
+              <textarea
+                className={styles.modalInput}
+                placeholder="이미지를 구체적으로 묘사해보세요..."
+                value={ideaDescription}
+                onChange={(e) => setIdeaDescription(e.target.value)}
+              />
+            </div>
+            <div className={styles.modalFooter}>
+              <button
+                className={styles.cancelBtn}
+                onClick={() => setIsPromptModalOpen(false)}
+                disabled={isGeneratingFromIdea}
+              >
+                취소
+              </button>
+              <button
+                className={styles.submitBtn}
+                onClick={handleGenerateFromIdea}
+                disabled={isGeneratingFromIdea || !ideaDescription.trim()}
+              >
+                {isGeneratingFromIdea ? <Sparkles className={styles.spinner} size={16} /> : <Wand2 size={16} />}
+                {isGeneratingFromIdea ? '생성 중...' : '생성하기'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

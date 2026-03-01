@@ -1,9 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 
-const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY,
-    httpOptions: { apiVersion: 'v1alpha' }
-});
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
     try {
@@ -17,6 +14,11 @@ export async function POST(req: Request) {
         // Example valid aspects in API: '1:1', '3:4', '4:3', '9:16', '16:9'
         // ultra-tall/wide ratios like 1:4, 1:8, 4:1, 8:1
         const validAspectRatio = aspectRatio || '1:1';
+
+        const ai = new GoogleGenAI({
+            apiKey: process.env.GEMINI_API_KEY,
+            httpOptions: { apiVersion: 'v1alpha' }
+        });
 
         const response = await ai.models.generateContent({
             model: 'gemini-3.1-flash-image-preview',
